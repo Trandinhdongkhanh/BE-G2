@@ -1,6 +1,5 @@
 package com.hcmute.be_g2.config;
 
-import com.hcmute.be_g2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
     @Autowired
-    private UserService userService;
+    private CustomUserDetailsService userDetailsService;
     @Autowired
     private CustomOauth2UserService oauth2UserService;
     @Bean
@@ -35,20 +34,20 @@ public class SecurityConfig {
                 .authenticationProvider(provider())
                 .httpBasic(Customizer.withDefaults());
 
-//        http
-//                .oauth2Login(oauth2 -> oauth2
-//                        .authorizationEndpoint(auth -> auth
-//                                //The url which redirect to choose a google account screen
-//                                .baseUri("/login/oauth2/authorization")
-//                        )
-//                        .redirectionEndpoint(redirect -> redirect
-//                                //The url which will be automatically called after select an google account
-//                                .baseUri("/login/oauth2/code/*")
-//                        )
-//                        .userInfoEndpoint(userInfo -> userInfo
-//                                .oidcUserService(oauth2UserService)
-//                        )
-//                );
+        http
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(auth -> auth
+                                //The url which redirect to choose a google account screen
+                                .baseUri("/login/oauth2/authorization")
+                        )
+                        .redirectionEndpoint(redirect -> redirect
+                                //The url which will be automatically called after select an google account
+                                .baseUri("/login/oauth2/code/*")
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .oidcUserService(oauth2UserService)
+                        )
+                );
 
         return http.build();
     }
@@ -57,7 +56,7 @@ public class SecurityConfig {
     AuthenticationProvider provider(){
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(encoder());
-        provider.setUserDetailsService(userService);
+        provider.setUserDetailsService(userDetailsService);
         return provider;
     }
 }

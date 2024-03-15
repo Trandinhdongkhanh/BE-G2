@@ -22,7 +22,7 @@ public class AuthController {
     public ResponseEntity<?> login(){
         return null;
     }
-    @GetMapping("/user")
+    @GetMapping("/info")
     public Principal authInfo(Principal principal){
         return principal;
     }
