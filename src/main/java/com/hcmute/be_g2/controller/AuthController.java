@@ -5,10 +5,11 @@ import com.hcmute.be_g2.dto.LoginResponseDTO;
 import com.hcmute.be_g2.entity.AppUser;
 import com.hcmute.be_g2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -16,24 +17,23 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/user/register")
-    public ResponseEntity<AppUser> register(@RequestBody AppUser appUser){
-        return ResponseEntity.ok(userService.register(appUser));
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody AppUser appUser) {
+        userService.register(appUser);
+        return ResponseEntity.ok("Register Success");
     }
-    @PostMapping("/user/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO body){
-        return userService.loginUser(body.getUsername(), body.getPassword());
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO body) {
+        LoginResponseDTO res = userService.loginUsingNormalAuthentication(body.getUsername(), body.getPassword());
+        if (res.getHttpStatus() == HttpStatus.UNAUTHORIZED) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
+        }
+        return ResponseEntity.ok(res);
     }
+
     @GetMapping("/info")
-    public Principal authInfo(Principal principal){
-        return principal;
-    }
-    @GetMapping("/user")
-    public String user(){
-        return "User access level";
-    }
-    @GetMapping("/admin")
-    public String admin(){
-        return "Admin access level";
+    public ResponseEntity<Authentication> authInfo() {
+        return ResponseEntity.ok(SecurityContextHolder.getContext().getAuthentication());
     }
 }

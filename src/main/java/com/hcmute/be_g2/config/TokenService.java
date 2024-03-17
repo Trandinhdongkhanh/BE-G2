@@ -1,4 +1,4 @@
-package com.hcmute.be_g2.service;
+package com.hcmute.be_g2.config;
 
 import com.hcmute.be_g2.entity.AppUser;
 import com.hcmute.be_g2.repository.UserRepo;
@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+//Service used for oauth2 to generate token
 @Service
 public class TokenService {
     @Autowired

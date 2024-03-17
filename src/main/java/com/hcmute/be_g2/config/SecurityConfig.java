@@ -12,13 +12,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -28,6 +29,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.hcmute.be_g2.enums.Authority.USER;
 import static com.hcmute.be_g2.enums.Authority.SELLER;
@@ -36,6 +38,7 @@ import static com.hcmute.be_g2.enums.Authority.ADMIN;
 
 @EnableWebSecurity
 @Configuration
+@EnableMethodSecurity   //Help use @Preauthorize annotation
 public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -43,6 +46,10 @@ public class SecurityConfig {
     private CustomOauth2UserService oauth2UserService;
     @Autowired
     private RSAKeyProperties keys;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Bean
     PasswordEncoder encoder() {
@@ -55,15 +62,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/user/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/user/login").permitAll()
-                        .requestMatchers("/api/v1/auth/user").hasAuthority(USER.name())
-                        .requestMatchers("/api/v1/auth/admin").hasAuthority(ADMIN.name())
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                )
                 //Don't know why have to comment these to use jwt along with oauth2 resource server, will find out in near feature
-                .authenticationManager(authManager(userDetailsService))
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
 //        http
 //                .oauth2Login(oauth2 -> oauth2
@@ -104,11 +114,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    AuthenticationManager authManager(UserDetailsService detailsService) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(encoder());
-        provider.setUserDetailsService(detailsService);
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(encoder());
+        return authProvider;
     }
 
     @Bean

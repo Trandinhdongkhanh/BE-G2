@@ -14,12 +14,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorRes handleException(Exception e){
         LOGGER.error(e.getMessage());
-        return new ErrorRes(e.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-    @ExceptionHandler(AuthorityException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorRes handleAuthorityException(AuthorityException e){
-        LOGGER.error(e.getMessage());
+        e.printStackTrace();
         return new ErrorRes(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
