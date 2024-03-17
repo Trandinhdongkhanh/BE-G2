@@ -8,6 +8,7 @@ import com.hcmute.be_g2.repository.RoleRepo;
 import com.hcmute.be_g2.repository.UserRepo;
 import com.hcmute.be_g2.config.TokenService;
 import com.hcmute.be_g2.service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtService jwtService;
 
+    @Transactional
     @Override
     public void register(AppUser appUser) {
         Set<Role> authorities = new HashSet<>();

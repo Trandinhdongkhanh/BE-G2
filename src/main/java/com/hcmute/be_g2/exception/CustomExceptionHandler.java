@@ -17,4 +17,12 @@ public class CustomExceptionHandler {
         e.printStackTrace();
         return new ErrorRes(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(CategoryException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorRes handleCategoryException(CategoryException e){
+        LOGGER.error(e.getMessage());
+        e.printStackTrace();
+        return new ErrorRes(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }

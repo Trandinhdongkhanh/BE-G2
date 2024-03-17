@@ -19,4 +19,8 @@ public class Product {
     private String description;
     private Integer price;
     private String image;
+    private boolean available = true;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cate_id")
+    private Category category;
 }

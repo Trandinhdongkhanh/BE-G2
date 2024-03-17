@@ -26,6 +26,9 @@ public class AppUser implements UserDetails {
     private String email;
     @Column(unique = true)
     private String phoneNo;
+    private String fullName;
+    private String address;
+    private String avatar;
     private boolean accountNonLocked = true;
     private boolean accountNonExpired = true;
     private boolean credentialsNonExpired = true;
