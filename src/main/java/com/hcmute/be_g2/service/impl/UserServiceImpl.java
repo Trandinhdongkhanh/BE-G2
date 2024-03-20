@@ -19,10 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.hcmute.be_g2.enums.Authority.*;
+import static com.hcmute.be_g2.enums.AppRole.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -42,10 +39,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void register(AppUser appUser) {
-        Set<Role> authorities = new HashSet<>();
-        roleRepo.findByAuthority(USER)
-                .ifPresent(authority -> authorities.add(authority));
-        appUser.setAuthorities(authorities);
+        Role userRole = roleRepo.findByAppRole(CUSTOMER);
+        appUser.setRole(userRole);
         appUser.setPassword(encoder.encode(appUser.getPassword()));
         userRepo.save(appUser);
     }
@@ -70,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 username, password
         ));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtService.generateToken(userRepo.findByUsername(username).get());
+        String token = jwtService.generateToken(authentication);
         return new LoginResponseDTO(token, HttpStatus.OK, "Token generated");
     }
 }

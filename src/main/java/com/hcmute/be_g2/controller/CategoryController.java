@@ -21,7 +21,7 @@ public class CategoryController {
         return ResponseEntity.ok(cateService.getCategory(cateId));
     }
     @PostMapping("/category-add")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('CREATE_CATEGORY')")
     public ResponseEntity<?> addCategory(@RequestBody CateRequestDTO body){
         return ResponseEntity.ok(cateService.addCategory(
                 body.getName(),
@@ -29,7 +29,7 @@ public class CategoryController {
         ));
     }
     @PutMapping("/category-update")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('UPDATE_CATEGORY')")
     public ResponseEntity<?> updateCategory(@RequestBody CateRequestDTO body){
         return ResponseEntity.ok(cateService.updateCategory(
                 body.getCateId(),
@@ -38,7 +38,7 @@ public class CategoryController {
         ));
     }
     @DeleteMapping("/category-del/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') and hasAuthority('DELETE_CATEGORY')")
     public ResponseEntity<?> delCategory(@PathVariable("id") Integer cateId){
         return ResponseEntity.ok(cateService.delCategory(cateId));
     }

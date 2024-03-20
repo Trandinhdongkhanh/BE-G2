@@ -3,9 +3,11 @@ package com.hcmute.be_g2.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -33,17 +35,21 @@ public class AppUser implements UserDetails {
     private boolean accountNonExpired = true;
     private boolean credentialsNonExpired = true;
     private boolean enabled = true;
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> authorities;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.authorities;
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(new SimpleGrantedAuthority(role.getAppRole().name()));
+        role.getPermissions().forEach(
+                permission -> {
+                    authorities.add(new SimpleGrantedAuthority(permission.getAppPermission().name()));
+                }
+        );
+        return authorities;
     }
 
     @Override

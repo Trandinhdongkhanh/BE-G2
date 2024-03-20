@@ -1,9 +1,10 @@
 package com.hcmute.be_g2.entity;
 
-import com.hcmute.be_g2.enums.Authority;
+import com.hcmute.be_g2.enums.AppRole;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
+
+import java.util.List;
 
 @Entity
 @Table(name = "role")
@@ -11,18 +12,23 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role implements GrantedAuthority {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
     private Integer id;
     @Enumerated(value = EnumType.STRING)
-    private Authority authority;
-    @Override
-    public String getAuthority() {
-        return this.authority.name();
-    }
-    public Role(Authority authority){
-        this.authority = authority;
+    private AppRole appRole;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "role_permission",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private List<Permission> permissions;
+
+    public Role(AppRole appRole, List<Permission> permissions) {
+        this.appRole = appRole;
+        this.permissions = permissions;
     }
 }

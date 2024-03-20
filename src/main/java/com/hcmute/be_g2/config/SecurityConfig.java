@@ -31,17 +31,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static com.hcmute.be_g2.enums.Authority.USER;
-import static com.hcmute.be_g2.enums.Authority.SELLER;
-import static com.hcmute.be_g2.enums.Authority.ADMIN;
-
 
 @EnableWebSecurity
 @Configuration
 @EnableMethodSecurity   //Help use @Preauthorize annotation
 public class SecurityConfig {
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private CustomUserDetailsService customUserDetailsService;
     @Autowired
     private CustomOauth2UserService oauth2UserService;
     @Autowired
@@ -52,12 +48,12 @@ public class SecurityConfig {
     private JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Bean
-    PasswordEncoder encoder() {
+    public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
@@ -66,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/home/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/category/**").permitAll()
+                        .requestMatchers("/roles").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
@@ -102,12 +99,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtDecoder jwtDecoder() {
+    public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(keys.getPublicKey()).build();
     }
 
     @Bean
-    JwtEncoder jwtEncoder() {
+    public JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey
                 .Builder(keys.getPublicKey())
                 .privateKey(keys.getPrivateKey())
@@ -122,12 +119,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(encoder());
-        return authProvider;
+    public AuthenticationProvider authProvider(){
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(encoder());
+        return provider;
     }
+
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {

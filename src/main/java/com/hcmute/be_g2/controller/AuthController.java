@@ -25,14 +25,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDTO body) {
+    public ResponseEntity<?> userLogin(@RequestBody LoginRequestDTO body) {
         LoginResponseDTO res = userService.loginUsingNormalAuthentication(body.getUsername(), body.getPassword());
         if (res.getHttpStatus() == HttpStatus.UNAUTHORIZED) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
         }
         return ResponseEntity.ok(res);
     }
-
     @GetMapping("/info")
     public ResponseEntity<Authentication> authInfo() {
         return ResponseEntity.ok(SecurityContextHolder.getContext().getAuthentication());

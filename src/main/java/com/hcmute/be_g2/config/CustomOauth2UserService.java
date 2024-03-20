@@ -13,10 +13,9 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Optional;
 
-import static com.hcmute.be_g2.enums.Authority.USER;
+import static com.hcmute.be_g2.enums.AppRole.*;
 
 @Service
 public class CustomOauth2UserService extends OidcUserService {
@@ -31,7 +30,6 @@ public class CustomOauth2UserService extends OidcUserService {
         OidcUser oidcUser = super.loadUser(userRequest);
 
         OAuth2AccessToken accessToken = userRequest.getAccessToken();
-        Set<Role> authorities = new HashSet<>();
 
         // TODO
         // 1) Fetch the authority information from the protected resource using accessToken
@@ -39,18 +37,18 @@ public class CustomOauth2UserService extends OidcUserService {
         // 3) Create a copy of oidcUser but use the mappedAuthorities instead
 
         String email = oidcUser.getEmail();
-        userRepo.findByEmail(email)
-                .ifPresentOrElse(user -> {
-                    user.getAuthorities().forEach(authority -> authorities.add((Role) authority));
-                }, () -> {
-                    AppUser user = new AppUser();
-                    roleRepo.findByAuthority(USER).ifPresent(authority -> authorities.add(authority));
-                    user.setAuthorities(authorities);
-                    user.setEmail(email);
-                    userRepo.save(user);
-                });
-        oidcUser = new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
+        Optional<AppUser> appUser = userRepo.findByEmail(email);
+        if (appUser.isPresent()) {
+            oidcUser = new DefaultOidcUser(appUser.get().getAuthorities(), oidcUser.getIdToken(), oidcUser.getUserInfo());
+            return oidcUser;
+        }
+        Role userRole = roleRepo.findByAppRole(CUSTOMER);
+        AppUser user = new AppUser();
+        user.setEmail(email);
+        user.setRole(userRole);
+        userRepo.save(user);
 
+        oidcUser = new DefaultOidcUser(user.getAuthorities(), oidcUser.getIdToken(), oidcUser.getUserInfo());
         return oidcUser;
     }
 }

@@ -1,10 +1,10 @@
 package com.hcmute.be_g2.config;
 
-import com.hcmute.be_g2.entity.AppUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -19,21 +19,13 @@ public class JwtService {
     private static final long EXPIRATION = 24 * 60 * 60 * 1000; // 24 hour
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtService.class);
 
-    public String generateToken(AppUser appUser) {
-        String username = appUser.getUsername();
-        String email = appUser.getEmail();
-
+    public String generateToken(Authentication auth) {
         Date curDate = new Date();
         Date expiredDate = new Date(curDate.getTime() + EXPIRATION);
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("email", email);
-        claims.put("authorities", appUser.getAuthorities());
-
         String token = Jwts.builder()
-                .setClaims(claims)
                 .setIssuer("self")
-                .setSubject(username)
+                .setSubject(auth.getName())
                 .setIssuedAt(curDate)
                 .setExpiration(expiredDate)
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS512)
